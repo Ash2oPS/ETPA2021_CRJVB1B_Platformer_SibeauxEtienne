@@ -1,26 +1,32 @@
 ////////// CONFIG //////////
 
-const screenWidth = 1920;
-const screenHeight = 1080;
+const screenWidth = 896;
+const screenHeight = 448;
 
 const config = {
     width: screenWidth,
     height: screenHeight,
+    pixelArt: true,
     type: Phaser.AUTO,
-    physics:{
+    physics: {
         default: 'arcade',
-        arcade:{
-            gravity: {y: 700},
+        arcade: {
+            gravity: {
+                y: 700
+            },
             debug: true
         }
     },
-    input : {gamepad:true},
+    input: {
+        gamepad: true
+    },
     scene: {
         preload: preload,
         create: create,
-        update: update},
-        scale: {
-        zoom:1,
+        update: update
+    },
+    scale: {
+        zoom: 1,
     }
 }
 
@@ -36,29 +42,70 @@ var debugText;
 
 var player;
 var jumpPower = 0;
-var jumpTimer = 0;
+var jumpPowerGoesUp;
+var playerHasJumped;
+
+
+var click;
 
 
 
 ////////// PRELOAD //////////
 
-function preload(){
-    
-    this.load.image('player', 'assets/Placeholders/dot.png');
+function preload() {
+
+    this.load.image('tiles', 'assets/Placeholders/tilemapPlaceholders.png');
+    this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
+
+    this.load.image('player', 'assets/Grenouille2.png');
 }
 
 ////////// CREATE //////////
 
-function create(){
+function create() {
 
-    // Camera
+    const map = this.make.tilemap({
+        key: 'map'
+    });
+    const tileset = map.addTilesetImage('tilemapPlaceholders', 'tiles');
+    var bg_Layer = map.createLayer('BG', tileset);
+    var platforms_Layer = map.createLayer('Platforms', tileset);
 
-    //this.cameras.main.startFollow(maya);
-    //this.cameras.main.setBounds(0, 0, maya.widthInPixels, maya.heightInPixels);
+    initPlayer(this);
 
-    //debug
+    initCamera(this);
+
+    initDebug(this);
+
+    platforms_Layer.setCollisionByExclusion(-1, true);
+    this.physics.add.collider(player, platforms_Layer);
+
+    click = this.input.activePointer.isDown;
+
+}
+
+////////// UPDATE //////////
+
+function update() {
+
+    jumpPowerVariation(this);
+    jump(this);
+
+    debugging(this);
+}
+
+
+////////// FONCTIONS //////////
+
+function initCamera(context) {
+    context.cameras.main.startFollow(player);
+    context.cameras.main.setBounds(0, 0, player.widthInPixels, player.heightInPixels);
+    context.cameras.main.followOffset.set(0, 120);
+}
+
+function initDebug(context) {
     if (config.physics.arcade.debug) {
-        debugText = this.add.text(0, 935, "bonjour, ça va ? super", {
+        debugText = context.add.text(0, screenHeight, "bonjour, ça va ? super", {
             fontSize: '24px',
             padding: {
                 x: 10,
@@ -71,24 +118,52 @@ function create(){
             .setOrigin(0, 1)
             .setDepth(11);
     }
-
-    player = this.add.image(960, 540, 'player')
-    .setOrigin(0.5,0.5);
 }
 
-////////// UPDATE //////////
-
-function update(){
-
-    jumpPower = 50 + Math.sin(jumpTimer*0.02)*50;
-    jumpTimer ++;
-
-    /*if (config.physics.arcade.debug) {
-        debugText.setText(jumpPower);
-    }*/
-    player.y = 300 + (jumpPower*6);
+function initPlayer(context) {
+    player = context.physics.add.sprite(1053, 1028, 'player')
+        .setOrigin(0.5, 0.5);
+    jumpPower = false;
+    jumpPowerGoesUp = true;
+    playerHasJumped = false;
 }
 
+function jumpPowerVariation(context) {
+    if (player.body.blocked.down) {
+        if (jumpPowerGoesUp) {
+            jumpPower += 1;
+            if (jumpPower >= 100) {
+                jumpPowerGoesUp = false;
+            }
+        } else {
+            jumpPower -= 1;
+            if (jumpPower <= 0) {
+                jumpPowerGoesUp = true;
+            }
+        }
+    }
+}
 
-////////// FONCTIONS //////////
+function debugging(context) {
+    if (config.physics.arcade.debug) {
+        debugText.setText('jumpPower : ' + jumpPower + ' player.y : ' + player.y);
+    }
 
+}
+
+function jump(context) {
+    if (context.input.activePointer.isDown) {
+        if (!playerHasJumped) {
+            player.setVelocityY(jumpPower * -6);
+            playerHasJumped = true;
+        }
+    }
+    if (playerHasJumped){
+        if (player.body.blocked.down) {
+            playerHasJumped = false;
+            jumpPowerGoesUp = true;
+            jumpPower = 0;
+        }
+    }
+    
+}
