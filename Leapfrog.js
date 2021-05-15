@@ -44,6 +44,7 @@ var player;
 var jumpPower = 0;
 var jumpPowerGoesUp;
 var playerHasJumped;
+var jumpTarget;
 
 
 var click;
