@@ -44,6 +44,7 @@ var player;
 var jumpPower = 0;
 var jumpPowerGoesUp;
 var playerHasJumped;
+var playerHasLanded;
 var jumpTarget;
 
 
@@ -127,6 +128,7 @@ function initPlayer(context) {
     jumpPower = false;
     jumpPowerGoesUp = true;
     playerHasJumped = false;
+    playerHasLanded = player.body.blocked.down;
 }
 
 function jumpPowerVariation(context) {
@@ -153,15 +155,21 @@ function debugging(context) {
 }
 
 function jump(context) {
+    if (!playerHasLanded && player.body.blocked.down){
+        playerHasLanded = true;
+    }
+
     if (context.input.activePointer.isDown) {
         if (!playerHasJumped) {
             player.setVelocityY(jumpPower * -6);
             playerHasJumped = true;
+            playerHasLanded = false;
+        } else{
+            playerHasJumped = false;
         }
     }
-    if (playerHasJumped){
+    if (playerHasJumped && !playerHasLanded){
         if (player.body.blocked.down) {
-            playerHasJumped = false;
             jumpPowerGoesUp = true;
             jumpPower = 0;
         }
