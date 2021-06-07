@@ -38,6 +38,10 @@ var game = new Phaser.Game(config);
 
 var debugText;
 
+// Backgrounds
+
+var skyBG1;
+
 // Player
 
 var player;
@@ -50,13 +54,21 @@ var jumpTarget;
 
 var click;
 
+// Map
+
+var map;
+var tileset;
+var collider_layer;
+
 
 
 ////////// PRELOAD //////////
 
 function preload() {
 
-    this.load.image('tiles', 'assets/Placeholders/tilemapPlaceholders.png');
+    this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
+
+    this.load.image('tiles', 'assets/Placeholders/tilemap.png');
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
 
     this.load.image('player', 'assets/Grenouille2.png');
@@ -66,12 +78,6 @@ function preload() {
 
 function create() {
 
-    const map = this.make.tilemap({
-        key: 'map'
-    });
-    const tileset = map.addTilesetImage('tilemapPlaceholders', 'tiles');
-    var bg_Layer = map.createLayer('BG', tileset);
-    var platforms_Layer = map.createLayer('Platforms', tileset);
 
     initPlayer(this);
 
@@ -79,8 +85,13 @@ function create() {
 
     initDebug(this);
 
-    platforms_Layer.setCollisionByExclusion(-1, true);
-    this.physics.add.collider(player, platforms_Layer);
+    initMap(this);
+
+    initBackground(this);
+    
+
+    collider_layer.setCollisionByExclusion(-1, true);
+    this.physics.add.collider(player, collider_layer);
 
     click = this.input.activePointer.isDown;
 
@@ -123,12 +134,31 @@ function initDebug(context) {
 }
 
 function initPlayer(context) {
-    player = context.physics.add.sprite(1053, 1028, 'player')
+    player = context.physics.add.sprite(928, 9312, 'player')
         .setOrigin(0.5, 0.5);
     jumpPower = false;
     jumpPowerGoesUp = true;
     playerHasJumped = false;
     playerHasLanded = player.body.blocked.down;
+}
+
+function initMap(context){
+    map = context.make.tilemap({
+        key: 'map'
+    });
+    tileset = map.addTilesetImage('tilemap', 'tiles');
+    collider_layer = map.createLayer('collider', tileset);
+}
+
+function initBackground(context){
+    skyBG1 = context.add.image(0, 0, 'skyBG1')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    for (i = 0; i < 7; i++){
+        var coordX = Phaser.Math.Between(1, 4);
+        var nuage = context.add.image(coordX, coordY,'nuage1')}
 }
 
 function jumpPowerVariation(context) {
@@ -160,7 +190,7 @@ function jump(context) {
     }
 
     if (context.input.activePointer.isDown) {
-        if (!playerHasJumped) {
+        if (!playerHasJumped && playerHasLanded) {
             player.setVelocityY(jumpPower * -6);
             playerHasJumped = true;
             playerHasLanded = false;
