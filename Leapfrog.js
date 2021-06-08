@@ -53,6 +53,8 @@ var jumpTarget;
 
 
 var click;
+var clickX;
+var clickDirection;
 
 // Map
 
@@ -94,6 +96,11 @@ function create() {
     this.physics.add.collider(player, collider_layer);
 
     click = this.input.activePointer.isDown;
+    if (clickX <= player.x){
+        clickDirection = false;
+    } else { 
+        clickDirection = true;
+    }
 
 }
 
@@ -102,7 +109,9 @@ function create() {
 function update() {
 
     jumpPowerVariation(this);
+    clickDirectionChecker(this);
     jump(this);
+
 
     debugging(this);
 }
@@ -155,10 +164,10 @@ function initBackground(context){
     .setScrollFactor(0)
     .setOrigin(0, 0)
     .setDepth(-1);
-
+/*
     for (i = 0; i < 7; i++){
         var coordX = Phaser.Math.Between(1, 4);
-        var nuage = context.add.image(coordX, coordY,'nuage1')}
+        var nuage = context.add.image(coordX, coordY,'nuage1')}*/
 }
 
 function jumpPowerVariation(context) {
@@ -179,7 +188,9 @@ function jumpPowerVariation(context) {
 
 function debugging(context) {
     if (config.physics.arcade.debug) {
-        debugText.setText('jumpPower : ' + jumpPower + ' player.y : ' + player.y);
+        debugText.setText('jumpPower : ' + jumpPower + ' clickDirection : ' + clickDirection + 
+        '\nclickX : ' + clickX + ' player.x : ' + player.x + 
+        '\nclickY : ' + clickY + ' player.y : ' + player.y);
     }
 
 }
@@ -205,4 +216,14 @@ function jump(context) {
         }
     }
     
+}
+
+function clickDirectionChecker(context){
+    clickX = game.input.mousePointer.x + player.x - screenWidth/2;
+
+    if (clickX <= player.x){
+        clickDirection = false;
+    } else { 
+        clickDirection = true;
+    }
 }
