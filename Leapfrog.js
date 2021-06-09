@@ -45,6 +45,7 @@ var skyBG1;
 // Player
 
 var player;
+//var cameraFocus;
 var jumpPower = 0;
 var jumpPowerGoesUp;
 var playerHasJumped;
@@ -54,7 +55,7 @@ var jumpTarget;
 
 var click;
 var clickX;
-var clickDirection;
+var clickY;
 
 // Map
 
@@ -69,6 +70,7 @@ var collider_layer;
 function preload() {
 
     this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
+    //this.load.image('cameraFocus', 'assets/debug/CameraFocus.png')
 
     this.load.image('tiles', 'assets/Placeholders/tilemap.png');
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
@@ -83,9 +85,9 @@ function create() {
 
     initPlayer(this);
 
-    initCamera(this);
-
     initDebug(this);
+
+    initCamera(this);
 
     initMap(this);
 
@@ -96,11 +98,13 @@ function create() {
     this.physics.add.collider(player, collider_layer);
 
     click = this.input.activePointer.isDown;
-    if (clickX <= player.x){
+    clickX = game.input.mousePointer.x + player.x - screenWidth/2;
+    clickY = game.input.mousePointer.y + player.y - screenHeight/2 + 120;
+    /*if (clickX <= player.x){
         clickDirection = false;
     } else { 
         clickDirection = true;
-    }
+    }*/
 
 }
 
@@ -109,8 +113,11 @@ function create() {
 function update() {
 
     jumpPowerVariation(this);
-    clickDirectionChecker(this);
+    
+    //clickDirectionChecker(this);
+    
     jump(this);
+    //cameraFocuser(this);
 
 
     debugging(this);
@@ -126,6 +133,8 @@ function initCamera(context) {
 }
 
 function initDebug(context) {
+    //cameraFocus = context.add.image(player.x, player.y,'cameraFocus');
+    //.alpha = 0;
     if (config.physics.arcade.debug) {
         debugText = context.add.text(0, screenHeight, "bonjour, ça va ? super", {
             fontSize: '24px',
@@ -143,8 +152,8 @@ function initDebug(context) {
 }
 
 function initPlayer(context) {
-    player = context.physics.add.sprite(928, 9312, 'player')
-        .setOrigin(0.5, 0.5);
+    player = context.physics.add.sprite(928, 9344, 'player')
+        .setOrigin(0.5, 1);
     jumpPower = false;
     jumpPowerGoesUp = true;
     playerHasJumped = false;
@@ -188,21 +197,23 @@ function jumpPowerVariation(context) {
 
 function debugging(context) {
     if (config.physics.arcade.debug) {
-        debugText.setText('jumpPower : ' + jumpPower + ' clickDirection : ' + clickDirection + 
-        '\nclickX : ' + clickX + ' player.x : ' + player.x + 
-        '\nclickY : ' + clickY + ' player.y : ' + player.y);
+        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped);
     }
 
 }
 
 function jump(context) {
-    if (!playerHasLanded && player.body.blocked.down){
+    if (!playerHasLanded && player.body.blocked.down && !context.input.activePointer.isDown){
         playerHasLanded = true;
     }
 
     if (context.input.activePointer.isDown) {
         if (!playerHasJumped && playerHasLanded) {
-            player.setVelocityY(jumpPower * -6);
+            jumpPower = 95;
+            player.setVelocityY(jumpPower * -6.8);
+            console.log(jumpPower);
+            //cameraFocus.x = player.x;
+            //cameraFocus.y = player.y - 120;
             playerHasJumped = true;
             playerHasLanded = false;
         } else{
@@ -216,14 +227,12 @@ function jump(context) {
         }
     }
     
+    
 }
 
-function clickDirectionChecker(context){
+/*function clickDirectionChecker(context){
     clickX = game.input.mousePointer.x + player.x - screenWidth/2;
+    clickY = game.input.mousePointer.y + player.y - screenHeight/2 - 120;
 
-    if (clickX <= player.x){
-        clickDirection = false;
-    } else { 
-        clickDirection = true;
-    }
-}
+
+}*/
