@@ -46,7 +46,7 @@ var skyBG1;
 
 var player;
 //var cameraFocus;
-var jumpPower = 0;
+var jumpPower = 1;
 var jumpPowerGoesUp;
 var playerHasJumped;
 var playerHasLanded;
@@ -129,6 +129,8 @@ function update() {
 ////////// FONCTIONS //////////
 
 function loadGauge(context){
+
+    /*
     context.load.image('gaugeLeft0', 'assets/UI/left0.png');
     context.load.image('gaugeLeft5', 'assets/UI/left5.png');
     context.load.image('gaugeLeft10', 'assets/UI/left10.png');
@@ -172,6 +174,10 @@ function loadGauge(context){
     context.load.image('gaugeRight90', 'assets/UI/right90.png');
     context.load.image('gaugeRight95', 'assets/UI/right95.png');
     context.load.image('gaugeRight100', 'assets/UI/right100.png');
+    */
+
+    this.load.spritesheet('gauge', 'assets/UI/gaugeSpritesheet.png', {frameWidth : 64, frameHeight : 64});
+    this.load.spritesheet('gaugeAnim', 'assets/UI/gaugeAnimSpritesheet.png', {frameWidth : 64, frameHeight : 64});
 }
 
 
@@ -203,7 +209,7 @@ function initDebug(context) {
 function initPlayer(context) {
     player = context.physics.add.sprite(928, 9344, 'player')
         .setOrigin(0.5, 1);
-    jumpPower = false;
+    jumpPower = 1;
     jumpPowerGoesUp = true;
     playerHasJumped = false;
     playerHasLanded = player.body.blocked.down;
@@ -245,8 +251,8 @@ function jumpPowerVariation(context) {
         
     }
     //JAUGE
-
-    if (jumpPower >= 0 && jumpPower < 5){
+    /*
+    if (jumpPower >= 0 && jumpPower < 5 && jumpGauge){
         if (jumpGauge){
             jumpGauge.destroy();
         }
@@ -328,7 +334,19 @@ function jumpPowerVariation(context) {
         jumpGauge.destroy();
         jumpGauge = context.add.image(player.x + 80, player.y - 40, 'gaugeRight100');
     }   
+    */
+
     jumpGauge.setOrigin = (0, 1);
+
+    if (!playerHasJumped && playerHasLanded){
+        jumpGauge.alpha = 1
+    }
+    else{
+        jumpGauge.alpha = 0;
+    }
+
+
+
 
     //FIN JAUGE
     
@@ -363,7 +381,7 @@ function jump(context) {
             var doesItGoUp = Phaser.Math.Between(0, 1);
             if (doesItGoUp == 0)    jumpPowerGoesUp = false;
             else    jumpPowerGoesUp = true;
-            jumpPower = Phaser.Math.Between(0, 100);
+            jumpPower = Phaser.Math.Between(1, 100);
         }
     }
     
