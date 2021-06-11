@@ -14,6 +14,7 @@ const config = {
             gravity: {
                 y: 700
             },
+            fps: 60,
             debug: true
         }
     },
@@ -176,8 +177,8 @@ function loadGauge(context){
     context.load.image('gaugeRight100', 'assets/UI/right100.png');
     */
 
-    this.load.spritesheet('gauge', 'assets/UI/gaugeSpritesheet.png', {frameWidth : 64, frameHeight : 64});
-    this.load.spritesheet('gaugeAnim', 'assets/UI/gaugeAnimSpritesheet.png', {frameWidth : 64, frameHeight : 64});
+    context.load.spritesheet('gauge', 'assets/UI/gaugeSpritesheet.png', {frameWidth : 64, frameHeight : 64});
+    context.load.spritesheet('gaugeAnim', 'assets/UI/gaugeAnimSpritesheet.png', {frameWidth : 64, frameHeight : 64});
 }
 
 
@@ -213,6 +214,14 @@ function initPlayer(context) {
     jumpPowerGoesUp = true;
     playerHasJumped = false;
     playerHasLanded = player.body.blocked.down;
+
+    context.anims.create({
+        key :'gaugeValue',
+        frames : context.anims.generateFrameNumbers('gauge', {start :0, end: 99}),
+        frameRate : 0,
+        repeat : -1
+    });
+
 }
 
 function initMap(context){
@@ -336,14 +345,14 @@ function jumpPowerVariation(context) {
     }   
     */
 
-    jumpGauge.setOrigin = (0, 1);
+    //jumpGauge.setOrigin = (0, 1);
 
-    if (!playerHasJumped && playerHasLanded){
+    /*if (!playerHasJumped && playerHasLanded){
         jumpGauge.alpha = 1
     }
     else{
         jumpGauge.alpha = 0;
-    }
+    }*/
 
 
 
