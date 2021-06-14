@@ -46,23 +46,30 @@ var skyBG1;
 // Player
 
 var player;
-//var cameraFocus;
+var mouseCursor;
 var jumpPower = 1;
 var jumpPowerGoesUp;
 var playerHasJumped;
 var playerHasLanded;
 var jumpGauge;
+var jumpVelHor;
+var jumpVelVer;
 
 
 var click;
 var clickX;
 var clickY;
+var clickDirection;
 
 // Map
 
 var map;
 var tileset;
 var collider_layer;
+var layer0;
+var layer1;
+var layer2;
+var layer3;
 
 
 
@@ -73,7 +80,7 @@ function preload() {
     loadGauge(this);
 
     this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
-    //this.load.image('cameraFocus', 'assets/debug/CameraFocus.png')
+    this.load.image('cursorPosition', 'assets/debug/CameraFocus.png')
 
     this.load.image('tiles', 'assets/Placeholders/tilemap.png');
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
@@ -88,13 +95,13 @@ function create() {
 
     initPlayer(this);
 
-    initDebug(this);
-
     initCamera(this);
 
     initMap(this);
 
     initBackground(this);
+
+    initDebug(this);
     
 
     collider_layer.setCollisionByExclusion(-1, true);
@@ -102,12 +109,12 @@ function create() {
 
     click = this.input.activePointer.isDown;
     clickX = game.input.mousePointer.x + player.x - screenWidth/2;
-    clickY = game.input.mousePointer.y + player.y - screenHeight/2 + 120;
-    /*if (clickX <= player.x){
+    clickY = game.input.mousePointer.y + player.y - 120 - screenHeight/2;
+    if (clickX <= player.x){
         clickDirection = false;
     } else { 
         clickDirection = true;
-    }*/
+    }
 
 }
 
@@ -117,7 +124,7 @@ function update() {
 
     jumpPowerVariation(this);
     
-    //clickDirectionChecker(this);
+    clickDirectionChecker(this);
     
     jump(this);
     //cameraFocuser(this);
@@ -189,7 +196,7 @@ function initCamera(context) {
 }
 
 function initDebug(context) {
-    //cameraFocus = context.add.image(player.x, player.y,'cameraFocus');
+    mouseCursor = context.add.image(clickX, clickY,'cursorPosition');
     //.alpha = 0;
     if (config.physics.arcade.debug) {
         debugText = context.add.text(0, screenHeight, "bonjour, ça va ? super", {
@@ -204,16 +211,31 @@ function initDebug(context) {
         debugText.setScrollFactor(0)
             .setOrigin(0, 1)
             .setDepth(11);
+        collider_layer.alpha = 0.2
+        collider_layer.setDepth(3);
+    }
+    else{
+        collider_layer.alpha = 0;
+        mouseCursor.alpha = 0;
     }
 }
 
 function initPlayer(context) {
-    player = context.physics.add.sprite(928, 9344, 'player')
-        .setOrigin(0.5, 1);
+    player = context.physics.add.sprite(928, 9300, 'player')
+        .setBounce(0.9, 0)
+        .setOrigin(0.5, 1)
+        .setSize(40, 40)
+        .setOffset(12, 24)
+        .setMaxVelocity(750);
+    
+
     jumpPower = 1;
     jumpPowerGoesUp = true;
     playerHasJumped = false;
-    playerHasLanded = player.body.blocked.down;
+    playerHasLanded = player.body.blocked.down
+
+    jumpVelHor = - 4;
+    jumpVelVer = - 6.8;
 
     context.anims.create({
         key :'gaugeValue',
@@ -221,6 +243,8 @@ function initPlayer(context) {
         frameRate : 0,
         repeat : -1
     });
+
+    
 
 }
 
@@ -230,6 +254,12 @@ function initMap(context){
     });
     tileset = map.addTilesetImage('tilemap', 'tiles');
     collider_layer = map.createLayer('collider', tileset);
+    layer0 = map.createLayer('Calque0', tileset);
+    layer1 = map.createLayer('Calque1', tileset);
+    layer2 = map.createLayer('Calque2', tileset)
+    .setDepth(2);
+    layer3 = map.createLayer('Degrades', tileset)
+    .setDepth(3);
 }
 
 function initBackground(context){
@@ -363,7 +393,8 @@ function jumpPowerVariation(context) {
 
 function debugging(context) {
     if (config.physics.arcade.debug) {
-        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped);
+        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped + 
+        '\nclickDirection : ' + clickDirection + ' velocity : ' + player.body.velocity.y);
     }
 
 }
@@ -373,10 +404,20 @@ function jump(context) {
         playerHasLanded = true;
     }
 
+    if (player.body.blocked.down && !playerHasJumped){
+        player.setVelocityX(0);
+    }
+
     if (context.input.activePointer.isDown) {
-        if (!playerHasJumped && playerHasLanded) {
-            player.setVelocityY(jumpPower * -6.8);
-            console.log(jumpPower * -6.8);
+        if (!playerHasJumped && playerHasLanded && clickY < player.y) {
+            jumpPower = 100
+            mouseCursor.x = clickX;
+            mouseCursor.y = clickY;
+            //if (clickDirection)  player.setVelocity(jumpVelHor * jumpPower * -1, jumpVelVer * jumpPower);
+            //else  player.setVelocity(jumpVelHor * jumpPower, jumpVelVer * jumpPower);
+            player.setVelocityX(jumpPower * 7.5 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+            player.setVelocityY(jumpPower * 7.5 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+            console.log(jumpPower);
             //cameraFocus.x = player.x;
             //cameraFocus.y = player.y - 120;
             playerHasJumped = true;
@@ -397,9 +438,14 @@ function jump(context) {
     
 }
 
-/*function clickDirectionChecker(context){
+function clickDirectionChecker(context){
+
+    if (clickX <= player.x){
+        clickDirection = false;
+    } else { 
+        clickDirection = true;
+    }
     clickX = game.input.mousePointer.x + player.x - screenWidth/2;
-    clickY = game.input.mousePointer.y + player.y - screenHeight/2 - 120;
+    clickY = game.input.mousePointer.y + player.y - 120 - screenHeight/2;
 
-
-}*/
+}
