@@ -15,7 +15,7 @@ const config = {
                 y: 700
             },
             fps: 60,
-            debug: true
+            debug: false
         }
     },
     input: {
@@ -42,6 +42,12 @@ var debugText;
 // Backgrounds
 
 var skyBG1;
+var bg0;
+var bg1;
+var fog0;
+var fog1;
+var fog2;
+var fog3;
 
 // Player
 
@@ -66,7 +72,12 @@ var clickDirection;
 var map;
 var tileset;
 var collider_layer;
+var layerMinus1;
+var layerMinus075;
+var layerMinus05;
 var layer0;
+var layer05;
+var layer075;
 var layer1;
 var layer2;
 var layer3;
@@ -80,7 +91,13 @@ function preload() {
     loadGauge(this);
 
     this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
-    this.load.image('cursorPosition', 'assets/debug/CameraFocus.png')
+    this.load.image('bg0', 'assets/Backgrounds/bg0.png');
+    this.load.image('bg1', 'assets/Backgrounds/bg1.png');
+    this.load.image('fog0', 'assets/Backgrounds/brouillard0.png');
+    this.load.image('fog1', 'assets/Backgrounds/brouillard1.png');
+    this.load.image('fog2', 'assets/Backgrounds/brouillard2.png');
+    this.load.image('fog3', 'assets/Backgrounds/brouillard3.png');
+    this.load.image('cursorPosition', 'assets/debug/CameraFocus.png');
 
     this.load.image('tiles', 'assets/Placeholders/tilemap.png');
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
@@ -254,7 +271,15 @@ function initMap(context){
     });
     tileset = map.addTilesetImage('tilemap', 'tiles');
     collider_layer = map.createLayer('collider', tileset);
+    layerMinus1 = map.createLayer('Calque-1', tileset)
+    .setDepth(-0.1);
+    layerMinus075 = map.createLayer('Calque-0.75', tileset)
+    .setDepth(-0.1);
+    layerMinus05 = map.createLayer('Calque-0.5', tileset)
+    .setDepth(-0.1);
     layer0 = map.createLayer('Calque0', tileset);
+    layer05 = map.createLayer('Calque0.5', tileset);
+    layer075 = map.createLayer('Calque0.75', tileset);
     layer1 = map.createLayer('Calque1', tileset);
     layer2 = map.createLayer('Calque2', tileset)
     .setDepth(2);
@@ -267,6 +292,32 @@ function initBackground(context){
     .setScrollFactor(0)
     .setOrigin(0, 0)
     .setDepth(-1);
+
+    bg1 = context.add.image(300, 500, 'bg1')
+    .setScrollFactor(0.04)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    bg0 = context.add.image(10, 800, 'bg0')
+    .setScrollFactor(0.08)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    fog0 = context.add.image(320, 1050, 'fog0')
+    .setScrollFactor(0.092)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    fog1 = context.add.image(450, 1150, 'fog1')
+    .setScrollFactor(0.1)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    fog2 = context.add.image(700, 1150, 'fog2')
+    .setScrollFactor(0.104)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
 /*
     for (i = 0; i < 7; i++){
         var coordX = Phaser.Math.Between(1, 4);
