@@ -15,7 +15,7 @@ const config = {
                 y: 700
             },
             fps: 60,
-            debug: false
+            debug: true
         }
     },
     input: {
@@ -240,6 +240,7 @@ function initDebug(context) {
 function initPlayer(context) {
     player = context.physics.add.sprite(928, 9300, 'player')
         .setBounce(0.9, 0)
+        .setDepth(1)
         .setOrigin(0.5, 1)
         .setSize(40, 40)
         .setOffset(12, 24)
@@ -253,6 +254,8 @@ function initPlayer(context) {
 
     jumpVelHor = - 4;
     jumpVelVer = - 6.8;
+
+    jumpGauge = context.add.image(player.x + 40, player.y -20, 'gauge');
 
     context.anims.create({
         key :'gaugeValue',
@@ -462,7 +465,7 @@ function jump(context) {
 
     if (context.input.activePointer.isDown) {
         if (!playerHasJumped && playerHasLanded && clickY < player.y) {
-            jumpPower = 100
+            //jumpPower = 100
             mouseCursor.x = clickX;
             mouseCursor.y = clickY;
             //if (clickDirection)  player.setVelocity(jumpVelHor * jumpPower * -1, jumpVelVer * jumpPower);
@@ -486,6 +489,9 @@ function jump(context) {
             jumpPower = Phaser.Math.Between(1, 100);
         }
     }
+
+    jumpGauge.x = player.x + 40;
+    jumpGauge.y = player.y - 20;
     
     
 }
