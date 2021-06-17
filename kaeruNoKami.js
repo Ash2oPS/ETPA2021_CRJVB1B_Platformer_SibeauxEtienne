@@ -277,7 +277,8 @@ function initMap(context){
     .setDepth(-0.1);
     layerMinus05 = map.createLayer('Calque-0.5', tileset)
     .setDepth(-0.1);
-    layer0 = map.createLayer('Calque0', tileset);
+    layer0 = map.createLayer('Calque0', tileset)
+    .setDepth(-0.1);
     layer05 = map.createLayer('Calque0.5', tileset);
     layer075 = map.createLayer('Calque0.75', tileset);
     layer1 = map.createLayer('Calque1', tileset);
