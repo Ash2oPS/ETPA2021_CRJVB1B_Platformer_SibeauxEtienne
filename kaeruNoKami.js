@@ -61,6 +61,10 @@ var jumpGauge;
 var jumpVelHor;
 var jumpVelVer;
 
+var playerIdleBool;
+var playerJumpBool;
+var playerFallBool;
+
 
 var click;
 var clickX;
@@ -102,7 +106,7 @@ function preload() {
     this.load.image('tiles', 'assets/Placeholders/tilemap.png');
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
 
-    this.load.image('player', 'assets/Grenouille2.png');
+    this.load.spritesheet('player', 'assets/grenouille_spritesheet.png', {frameWidth : 68, frameHeight : 64});
 }
 
 ////////// CREATE //////////
@@ -242,8 +246,8 @@ function initPlayer(context) {
         .setBounce(0.9, 0)
         .setDepth(1)
         .setOrigin(0.5, 1)
-        .setSize(40, 40)
-        .setOffset(12, 24)
+        .setSize(30, 35)
+        .setOffset(19, 29)
         .setMaxVelocity(750);
     
 
@@ -255,12 +259,39 @@ function initPlayer(context) {
     jumpVelHor = - 4;
     jumpVelVer = - 6.8;
 
-    jumpGauge = context.add.image(player.x + 40, player.y -20, 'gauge');
+    jumpGauge = context.add.image(player.x + 60, player.y -30, 'gauge')
+    .setDepth(3);
+
+    context.anims.create({
+        key :'playerIdle',
+        frames : context.anims.generateFrameNumbers('player', {start :0, end: 11}),
+        frameRate : 6,
+        repeat : -1
+    });
+
+    context.anims.create({
+        key :'playerJump',
+        frames : context.anims.generateFrameNumbers('player', {start :12, end: 14}),
+        frameRate : 6,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerFall',
+        frames : context.anims.generateFrameNumbers('player', {start :15, end: 15}),
+        frameRate : 6,
+        repeat : 0
+    });
+
+    player.play('playerIdle');
+    playerIdleBool = true;
+    playerJumpBool = false;
+    playerFallBool = false;
 
     context.anims.create({
         key :'gaugeValue',
         frames : context.anims.generateFrameNumbers('gauge', {start :0, end: 99}),
-        frameRate : 0,
+        frameRate : 1,
         repeat : -1
     });
 
@@ -331,6 +362,14 @@ function initBackground(context){
 function jumpPowerVariation(context) {
 
     if (playerHasLanded && !playerHasJumped) {
+        jumpGauge.alpha = 1;
+        if (!playerIdleBool){
+            player.play('playerIdle');
+            playerIdleBool = true;
+            playerJumpBool = false;
+            playerFallBool = false;
+            console.log('IdelAnim');
+        }
         if (jumpPowerGoesUp) {
             jumpPower += 1;
             if (jumpPower >= 100) {
@@ -342,7 +381,24 @@ function jumpPowerVariation(context) {
                 jumpPowerGoesUp = true;
             }
         }
-        
+    }else{    
+        jumpGauge.alpha = 0;
+
+        if (player.body.velocity.y < 0 && !playerJumpBool){
+            player.play('playerJump', false);
+            playerJumpBool = true;
+            playerIdleBool = false;
+            playerFallBool = false;
+            console.log('jumpAnim');
+        }
+
+        if (player.body.velocity.y > 0 && !playerFallBool){
+            player.play('playerFall', false);
+            playerJumpBool = false;
+            playerIdleBool = false;
+            playerFallBool = true;
+            console.log('jumpFall');
+        }
     }
     //JAUGE
     /*
@@ -470,8 +526,8 @@ function jump(context) {
             mouseCursor.y = clickY;
             //if (clickDirection)  player.setVelocity(jumpVelHor * jumpPower * -1, jumpVelVer * jumpPower);
             //else  player.setVelocity(jumpVelHor * jumpPower, jumpVelVer * jumpPower);
-            player.setVelocityX(jumpPower * 7.5 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
-            player.setVelocityY(jumpPower * 7.5 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+            player.setVelocityX(jumpPower * 8 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+            player.setVelocityY(jumpPower * 8 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
             console.log(jumpPower);
             //cameraFocus.x = player.x;
             //cameraFocus.y = player.y - 120;
@@ -490,8 +546,8 @@ function jump(context) {
         }
     }
 
-    jumpGauge.x = player.x + 40;
-    jumpGauge.y = player.y - 20;
+    jumpGauge.x = player.x + 60;
+    jumpGauge.y = player.y - 30;
     
     
 }
