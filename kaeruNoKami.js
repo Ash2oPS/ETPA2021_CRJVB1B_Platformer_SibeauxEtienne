@@ -15,7 +15,7 @@ const config = {
                 y: 700
             },
             fps: 60,
-            debug: true
+            debug: false
         }
     },
     input: {
@@ -152,6 +152,7 @@ function update() {
 
 
     debugging(this);
+
 }
 
 
@@ -244,7 +245,7 @@ function initDebug(context) {
 function initPlayer(context) {
     player = context.physics.add.sprite(928, 9300, 'player')
         .setBounce(0.9, 0)
-        .setDepth(1)
+        .setDepth(-0.2)
         .setOrigin(0.5, 1)
         .setSize(30, 35)
         .setOffset(19, 29)
@@ -259,7 +260,7 @@ function initPlayer(context) {
     jumpVelHor = - 4;
     jumpVelVer = - 6.8;
 
-    jumpGauge = context.add.image(player.x + 60, player.y -30, 'gauge')
+    jumpGauge = context.add.sprite(player.x + 60, player.y -30, 'gauge')
     .setDepth(3);
 
     context.anims.create({
@@ -291,9 +292,11 @@ function initPlayer(context) {
     context.anims.create({
         key :'gaugeValue',
         frames : context.anims.generateFrameNumbers('gauge', {start :0, end: 99}),
-        frameRate : 1,
+        frameRate : 0,
         repeat : -1
     });
+
+    jumpGauge.play('gaugeValue');
 
     
 
@@ -306,9 +309,9 @@ function initMap(context){
     tileset = map.addTilesetImage('tilemap', 'tiles');
     collider_layer = map.createLayer('collider', tileset);
     layerMinus1 = map.createLayer('Calque-1', tileset)
-    .setDepth(-0.1);
+    .setDepth(-0.3);
     layerMinus075 = map.createLayer('Calque-0.75', tileset)
-    .setDepth(-0.1);
+    .setDepth(-0.3);
     layerMinus05 = map.createLayer('Calque-0.5', tileset)
     .setDepth(-0.1);
     layer0 = map.createLayer('Calque0', tileset)
@@ -362,6 +365,7 @@ function initBackground(context){
 function jumpPowerVariation(context) {
 
     if (playerHasLanded && !playerHasJumped) {
+        jumpGauge.setFrame(jumpPower-1);
         jumpGauge.alpha = 1;
         if (!playerIdleBool){
             player.play('playerIdle');
@@ -377,7 +381,7 @@ function jumpPowerVariation(context) {
             }
         } else {
             jumpPower -= 1;
-            if (jumpPower <= 0) {
+            if (jumpPower <= 1) {
                 jumpPowerGoesUp = true;
             }
         }
