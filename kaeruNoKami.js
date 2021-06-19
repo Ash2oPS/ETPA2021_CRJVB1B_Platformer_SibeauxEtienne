@@ -49,6 +49,14 @@ var fog1;
 var fog2;
 var fog3;
 
+var skyBG2;
+var blackCloud0;
+var blackCloud1;
+var blackCloud2;
+var blackCloud3;
+var blackCloud4;
+var blackCloud5;
+
 // Player
 
 var player;
@@ -65,11 +73,16 @@ var playerIdleBool;
 var playerJumpBool;
 var playerFallBool;
 
+var backgroundChanger;
 
 var click;
 var clickX;
 var clickY;
 var clickDirection;
+
+// Mobs
+
+var heart;
 
 // Map
 
@@ -95,6 +108,13 @@ function preload() {
     loadGauge(this);
 
     this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
+    this.load.image('skyBG2', 'assets/Backgrounds/SkyBG2.png');
+    this.load.image('blackCloud0', 'assets/Backgrounds/blackCloud0.png');
+    this.load.image('blackCloud1', 'assets/Backgrounds/blackCloud1.png');
+    this.load.image('blackCloud2', 'assets/Backgrounds/blackCloud2.png');
+    this.load.image('blackCloud3', 'assets/Backgrounds/blackCloud3.png');
+    this.load.image('blackCloud4', 'assets/Backgrounds/blackCloud4.png');
+    this.load.image('blackCloud5', 'assets/Backgrounds/blackCloud5.png');
     this.load.image('bg0', 'assets/Backgrounds/bg0.png');
     this.load.image('bg1', 'assets/Backgrounds/bg1.png');
     this.load.image('fog0', 'assets/Backgrounds/brouillard0.png');
@@ -107,6 +127,9 @@ function preload() {
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
 
     this.load.spritesheet('player', 'assets/grenouille_spritesheet.png', {frameWidth : 68, frameHeight : 64});
+    this.load.spritesheet('snail', 'assets/snail.png',{frameWidth : 64, frameHeight : 64});
+
+    this.load.spritesheet('heart', 'assets/Tilemap/Heart/HeartAsset.png',{frameWidth : 262, frameHeight : 312});
 }
 
 ////////// CREATE //////////
@@ -121,6 +144,8 @@ function create() {
     initMap(this);
 
     initBackground(this);
+
+    initMobs(this);
 
     initDebug(this);
     
@@ -148,6 +173,8 @@ function update() {
     clickDirectionChecker(this);
     
     jump(this);
+
+    backgroundsManager(this);
     //cameraFocuser(this);
 
 
@@ -243,7 +270,9 @@ function initDebug(context) {
 }
 
 function initPlayer(context) {
-    player = context.physics.add.sprite(928, 9300, 'player')
+    //player = context.physics.add.sprite(928, 9300, 'player')
+    //player = context.physics.add.sprite(5058, 5626, 'player')
+    player = context.physics.add.sprite(11103, 839, 'player')
         .setBounce(0.9, 0)
         .setDepth(-0.2)
         .setOrigin(0.5, 1)
@@ -326,6 +355,9 @@ function initMap(context){
 }
 
 function initBackground(context){
+
+    // PHASE 1
+
     skyBG1 = context.add.image(0, 0, 'skyBG1')
     .setScrollFactor(0)
     .setOrigin(0, 0)
@@ -356,10 +388,53 @@ function initBackground(context){
     .setOrigin(0, 0)
     .setDepth(-1);
 
+    // PHASE 2
+
+    skyBG2 = context.add.image(0, 0, 'skyBG2')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud0 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud0')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud1 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud1')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud2 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud2')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud3 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud3')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud4 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud4')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+    blackCloud5 = context.add.tileSprite(0, 0, 0, 0, 'blackCloud5')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-1);
+
+
 /*
     for (i = 0; i < 7; i++){
         var coordX = Phaser.Math.Between(1, 4);
         var nuage = context.add.image(coordX, coordY,'nuage1')}*/
+}
+
+function initMobs(context){
+    heart = context.add.sprite(11360, 1040, 'heart');
+
 }
 
 function jumpPowerVariation(context) {
@@ -565,5 +640,54 @@ function clickDirectionChecker(context){
     }
     clickX = game.input.mousePointer.x + player.x - screenWidth/2;
     clickY = game.input.mousePointer.y + player.y - 120 - screenHeight/2;
+
+}
+
+function backgroundsManager(context){
+
+    if (player.x > 5400){
+        backgroundChanger = true;
+    } else  backgroundChanger = false;
+
+    if (!backgroundChanger){
+        skyBG1.alpha = 1;
+        bg1.alpha = 1;
+        bg0.alpha = 1;
+        fog0.alpha = 1;
+        fog1.alpha = 1;
+        fog2.alpha = 1;
+
+        skyBG2.alpha = 0;
+        blackCloud0.alpha = 0;
+        blackCloud1.alpha = 0;
+        blackCloud2.alpha = 0;
+        blackCloud3.alpha = 0;
+        blackCloud4.alpha = 0;
+        blackCloud5.alpha = 0;
+    } else {
+        skyBG2.alpha = 1;
+        blackCloud0.alpha = 1;
+        blackCloud1.alpha = 1;
+        blackCloud2.alpha = 1;
+        blackCloud3.alpha = 1;
+        blackCloud4.alpha = 1;
+        blackCloud5.alpha = 1;
+
+        blackCloud0.tilePositionX -= 0.04;
+        blackCloud1.tilePositionX -= 0.1;
+        blackCloud2.tilePositionX -= 0.2;
+        blackCloud3.tilePositionX -= 0.35;
+        blackCloud4.tilePositionX -= 0.5;
+        blackCloud5.tilePositionX -= 0.6;
+        
+
+        skyBG1.alpha = 0;
+        bg1.alpha = 0;
+        bg0.alpha = 0;
+        fog0.alpha = 0;
+        fog1.alpha = 0;
+        fog2.alpha = 0;
+
+    }
 
 }
