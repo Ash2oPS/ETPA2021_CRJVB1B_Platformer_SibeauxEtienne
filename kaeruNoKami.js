@@ -280,8 +280,8 @@ function initDebug(context) {
 }
 
 function initPlayer(context) {
-    //player = context.physics.add.sprite(928, 9300, 'player')
-    player = context.physics.add.sprite(5058, 5626, 'player')
+    player = context.physics.add.sprite(928, 9300, 'player')
+    //player = context.physics.add.sprite(5058, 5626, 'player')
     //player = context.physics.add.sprite(7248, 3732, 'player')
     //player = context.physics.add.sprite(11103, 839, 'player')
         .setBounce(0.9, 0)
