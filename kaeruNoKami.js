@@ -15,7 +15,7 @@ const config = {
                 y: 700
             },
             fps: 60,
-            debug: true
+            debug: false
         }
     },
     input: {
@@ -56,6 +56,9 @@ var blackCloud2;
 var blackCloud3;
 var blackCloud4;
 var blackCloud5;
+var snowStorm0;
+var snowStorm1;
+var snowStorm2;
 
 // Player
 
@@ -98,6 +101,10 @@ var layer075;
 var layer1;
 var layer2;
 var layer3;
+var brouillard1_layer;
+var brouillard2_layer;
+var brouillard3_layer;
+var brouillard4_layer;
 
 
 
@@ -115,6 +122,9 @@ function preload() {
     this.load.image('blackCloud3', 'assets/Backgrounds/blackCloud3.png');
     this.load.image('blackCloud4', 'assets/Backgrounds/blackCloud4.png');
     this.load.image('blackCloud5', 'assets/Backgrounds/blackCloud5.png');
+    this.load.spritesheet('snowStorm0', 'assets/Backgrounds/snowStorm0.png',{frameWidth : 896, frameHeight : 448});
+    this.load.spritesheet('snowStorm1', 'assets/Backgrounds/snowStorm1.png',{frameWidth : 896, frameHeight : 448});
+    this.load.spritesheet('snowStorm2', 'assets/Backgrounds/snowStorm2.png',{frameWidth : 896, frameHeight : 448});
     this.load.image('bg0', 'assets/Backgrounds/bg0.png');
     this.load.image('bg1', 'assets/Backgrounds/bg1.png');
     this.load.image('fog0', 'assets/Backgrounds/brouillard0.png');
@@ -272,6 +282,7 @@ function initDebug(context) {
 function initPlayer(context) {
     //player = context.physics.add.sprite(928, 9300, 'player')
     player = context.physics.add.sprite(5058, 5626, 'player')
+    //player = context.physics.add.sprite(7248, 3732, 'player')
     //player = context.physics.add.sprite(11103, 839, 'player')
         .setBounce(0.9, 0)
         .setDepth(-0.2)
@@ -350,7 +361,14 @@ function initMap(context){
     layer1 = map.createLayer('Calque1', tileset);
     layer2 = map.createLayer('Calque2', tileset)
     .setDepth(2);
-    layer3 = map.createLayer('Degrades', tileset)
+
+    brouillard1_layer = map.createLayer('brouillard1', tileset)
+    .setDepth(3);
+    brouillard2_layer = map.createLayer('brouillard2', tileset)
+    .setDepth(3);
+    brouillard3_layer = map.createLayer('brouillard3', tileset)
+    .setDepth(3);
+    brouillard4_layer = map.createLayer('brouillard4', tileset)
     .setDepth(3);
 }
 
@@ -424,6 +442,42 @@ function initBackground(context){
     .setScrollFactor(0)
     .setOrigin(0, 0)
     .setDepth(-1);
+
+    snowStorm0 = context.add.sprite(0, 0, 0, 0, 'snowStorm0')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(3);
+    context.anims.create({
+        key :'snowStorm0Anim',
+        frames : context.anims.generateFrameNumbers('snowStorm0', {start :0, end: 4}),
+        frameRate : 8,
+        repeat : -1
+    });
+    snowStorm0.play('snowStorm0Anim');
+
+    snowStorm2 = context.add.sprite(0, 0, 0, 0, 'snowStorm2')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-0.4);
+    context.anims.create({
+        key :'snowStorm2Anim',
+        frames : context.anims.generateFrameNumbers('snowStorm2', {start :0, end: 4}),
+        frameRate : 8,
+        repeat : -1
+    });
+    snowStorm2.play('snowStorm2Anim');
+
+    snowStorm1 = context.add.sprite(0, 0, 0, 0, 'snowStorm1')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(-0.4);
+    context.anims.create({
+        key :'snowStorm1Anim',
+        frames : context.anims.generateFrameNumbers('snowStorm1', {start :0, end: 4}),
+        frameRate : 8,
+        repeat : -1
+    });
+    snowStorm1.play('snowStorm1Anim');
 
 
 /*
@@ -645,7 +699,7 @@ function clickDirectionChecker(context){
 
 function backgroundsManager(context){
 
-    if (player.x > 5400){
+    if (player.x > 5400 && player.y < 5800){
         backgroundChanger = true;
     } else  backgroundChanger = false;
 
@@ -664,6 +718,15 @@ function backgroundsManager(context){
         blackCloud3.alpha = 0;
         blackCloud4.alpha = 0;
         blackCloud5.alpha = 0;
+        snowStorm0.alpha = 0;
+        snowStorm1.alpha = 0;
+        snowStorm2.alpha = 0;
+
+        brouillard1_layer.setScrollFactor(1);
+        brouillard2_layer.setScrollFactor(1);
+        brouillard3_layer.setScrollFactor(1);
+        brouillard4_layer.setScrollFactor(1);
+
     } else {
         skyBG2.alpha = 1;
         blackCloud0.alpha = 1;
@@ -672,6 +735,21 @@ function backgroundsManager(context){
         blackCloud3.alpha = 1;
         blackCloud4.alpha = 1;
         blackCloud5.alpha = 1;
+        snowStorm1.alpha = 1;
+        snowStorm2.alpha = 1;
+
+        if (player.x < 5800){
+            snowStorm0.alpha = 0.2;
+        } else if (player.x < 6000){
+            snowStorm0.alpha = 0.4;
+        }
+        else if (player.x < 6200){
+            snowStorm0.alpha = 0.6;
+        }else if (player.x < 6300){
+            snowStorm0.alpha = 0.8;
+        }else{
+            snowStorm0.alpha = 1;
+        }
 
         blackCloud0.tilePositionX -= 0.04;
         blackCloud1.tilePositionX -= 0.1;
@@ -679,6 +757,11 @@ function backgroundsManager(context){
         blackCloud3.tilePositionX -= 0.35;
         blackCloud4.tilePositionX -= 0.5;
         blackCloud5.tilePositionX -= 0.6;
+
+        brouillard1_layer.setScrollFactor(1.1);
+        brouillard2_layer.setScrollFactor(1.12);
+        brouillard3_layer.setScrollFactor(1.13);
+        brouillard4_layer.setScrollFactor(1.15);
         
 
         skyBG1.alpha = 0;
