@@ -352,7 +352,7 @@ function initPlayer(context) {
     if (player.x == 928){    
         menuBool = true;
         player.x = 1460;
-        player.y = 8834;
+        player.y = 8825;
     }
     else                    menuBool = false; 
 
