@@ -15,6 +15,15 @@ const config = {
                 y: 700
             },
             fps: 60,
+            audio: {
+                mute: false,
+                volume: 1,
+                rate: 1,
+                detune: 0,
+                seek: 0,
+                loop: false,
+                delay: 0
+            },
             debug: false
         }
     },
@@ -87,6 +96,7 @@ var clickDirection;
 
 var heart;
 
+
 // Map
 
 var map;
@@ -106,11 +116,38 @@ var brouillard2_layer;
 var brouillard3_layer;
 var brouillard4_layer;
 
+// Audio
+
+var pop1;
+var pop2;
+var pop3;
+var pop4;
+var pop5;
+var pop6;
+
+var kero;
+
+var music1;
+var music2;
+
+// Menu
+
+var menuBool;
+var logo;
+var boutonEscalader;
+var boutonEscaladerBool;
+var boutonQuitter;
+var boutonQuitterBool;
+var grenouilleBouton;
 
 
 ////////// PRELOAD //////////
 
 function preload() {
+
+    this.load.image('logo', 'assets/logoInGame.png');
+    this.load.spritesheet('quitter', 'assets/quitter.png', {frameWidth : 134, frameHeight : 98});
+    this.load.spritesheet('escalader', 'assets/escalader.png', {frameWidth : 284, frameHeight : 144});
 
     loadGauge(this);
 
@@ -137,9 +174,20 @@ function preload() {
     this.load.tilemapTiledJSON('map', 'assets/Placeholders/map.json');
 
     this.load.spritesheet('player', 'assets/grenouille_spritesheet.png', {frameWidth : 68, frameHeight : 64});
-    this.load.spritesheet('snail', 'assets/snail.png',{frameWidth : 64, frameHeight : 64});
 
     this.load.spritesheet('heart', 'assets/Tilemap/Heart/HeartAsset.png',{frameWidth : 262, frameHeight : 312});
+
+    this.load.audio('pop1', 'assets/Audio/pop1.mp3');
+    this.load.audio('pop2', 'assets/Audio/pop2.mp3');
+    this.load.audio('pop3', 'assets/Audio/pop3.mp3');
+    this.load.audio('pop4', 'assets/Audio/pop4.mp3');
+    this.load.audio('pop5', 'assets/Audio/pop5.mp3');
+    this.load.audio('pop6', 'assets/Audio/pop6.mp3');
+    this.load.audio('kero', 'assets/Audio/kero.mp3');
+    this.load.audio('music1', 'assets/Audio/BGM Children_Yummy Flavor.mp3');
+    this.load.audio('music2', 'assets/Audio/tense-cinematic-instrumental-ambient-music-free-music-by-argsound.mp3');
+
+    
 }
 
 ////////// CREATE //////////
@@ -149,15 +197,19 @@ function create() {
 
     initPlayer(this);
 
+    initMobs(this);
+
+    initAudio(this);
+
     initCamera(this);
 
     initMap(this);
 
     initBackground(this);
 
-    initMobs(this);
-
     initDebug(this);
+
+    initMenu(this);
     
 
     collider_layer.setCollisionByExclusion(-1, true);
@@ -178,6 +230,8 @@ function create() {
 
 function update() {
 
+    menuUpdate(this);
+
     jumpPowerVariation(this);
     
     clickDirectionChecker(this);
@@ -187,8 +241,11 @@ function update() {
     backgroundsManager(this);
     //cameraFocuser(this);
 
+    enemyBehaviour(this);
+
 
     debugging(this);
+
 
 }
 
@@ -255,7 +312,8 @@ function initCamera(context) {
 }
 
 function initDebug(context) {
-    mouseCursor = context.add.image(clickX, clickY,'cursorPosition');
+    mouseCursor = context.physics.add.image(clickX, clickY,'cursorPosition');
+    mouseCursor.body.setAllowGravity(false);
     //.alpha = 0;
     if (config.physics.arcade.debug) {
         debugText = context.add.text(0, screenHeight, "bonjour, ça va ? super", {
@@ -290,7 +348,13 @@ function initPlayer(context) {
         .setSize(30, 35)
         .setOffset(19, 29)
         .setMaxVelocity(750);
-    
+
+    if (player.x == 928){    
+        menuBool = true;
+        player.x = 1460;
+        player.y = 8834;
+    }
+    else                    menuBool = false; 
 
     jumpPower = 1;
     jumpPowerGoesUp = true;
@@ -311,16 +375,30 @@ function initPlayer(context) {
     });
 
     context.anims.create({
-        key :'playerJump',
-        frames : context.anims.generateFrameNumbers('player', {start :12, end: 14}),
+        key :'playerJumpRight',
+        frames : context.anims.generateFrameNumbers('player', {start :12, end: 15}),
         frameRate : 6,
         repeat : 0
     });
 
     context.anims.create({
-        key :'playerFall',
-        frames : context.anims.generateFrameNumbers('player', {start :15, end: 15}),
+        key :'playerFallRight',
+        frames : context.anims.generateFrameNumbers('player', {start :16, end: 17}),
+        frameRate : 3,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerJumpLeft',
+        frames : context.anims.generateFrameNumbers('player', {start :18, end: 21}),
         frameRate : 6,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerFallLeft',
+        frames : context.anims.generateFrameNumbers('player', {start :22, end: 23}),
+        frameRate : 3,
         repeat : 0
     });
 
@@ -341,6 +419,23 @@ function initPlayer(context) {
     
 
 }
+
+function initAudio(context){
+    pop1 = context.sound.add('pop1');
+    pop2 = context.sound.add('pop2');
+    pop3 = context.sound.add('pop3');
+    pop4 = context.sound.add('pop4');
+    pop5 = context.sound.add('pop5');
+    pop6 = context.sound.add('pop6');
+    kero = context.sound.add('kero');
+    music1 = context.sound.add('music1');
+    music1.setLoop(true);
+    music1.play();
+    music2 = context.sound.add('music2');
+    music2.setLoop(true);
+    music2.play();    
+}
+
 
 function initMap(context){
     map = context.make.tilemap({
@@ -487,8 +582,20 @@ function initBackground(context){
 }
 
 function initMobs(context){
+
+
     heart = context.add.sprite(11360, 1040, 'heart');
 
+}
+
+function initMenu(context){
+
+    logo = context.add.image(1185, 8660, 'logo');
+    grenouilleBouton = context.add.image(1690, 8660, 'player').setOrigin(1, 0.5);
+    boutonQuitter = context.physics.add.sprite(1400, 8845, 'quitter');
+    boutonQuitter.body.setAllowGravity(false)
+    boutonEscalader = context.physics.add.sprite(1700, 8690, 'escalader');
+    boutonEscalader.body.setAllowGravity(false)
 }
 
 function jumpPowerVariation(context) {
@@ -498,6 +605,7 @@ function jumpPowerVariation(context) {
         jumpGauge.alpha = 1;
         if (!playerIdleBool){
             player.play('playerIdle');
+            console.log('SUUUUUUUUCE');
             playerIdleBool = true;
             playerJumpBool = false;
             playerFallBool = false;
@@ -518,7 +626,12 @@ function jumpPowerVariation(context) {
         jumpGauge.alpha = 0;
 
         if (player.body.velocity.y < 0 && !playerJumpBool){
-            player.play('playerJump', false);
+            if (player.body.velocity.x < 0){
+                player.play('playerJumpLeft', false);
+            }
+            else{
+                player.play('playerJumpRight', false);
+            }
             playerJumpBool = true;
             playerIdleBool = false;
             playerFallBool = false;
@@ -526,13 +639,77 @@ function jumpPowerVariation(context) {
         }
 
         if (player.body.velocity.y > 0 && !playerFallBool){
-            player.play('playerFall', false);
+            if (player.body.velocity.x < 0) { 
+                player.play('playerFallLeft', false);
+            }
+            else{
+                player.play('playerFallRight', false);
+            }
             playerJumpBool = false;
             playerIdleBool = false;
             playerFallBool = true;
             console.log('jumpFall');
         }
+
+        if (playerJumpBool){
+            if (player.anims.currentAnim.key == 'playerJumpRight' && player.body.velocity.x < 0){
+                var currentFrame = player.anims.currentFrame.index;
+                console.log(currentFrame);
+                player.play('playerJumpLeft');
+                var rand = Phaser.Math.Between(0, 5)
+                if (rand == 0)  pop1.play();
+                else if (rand == 1)  pop2.play();
+                else if (rand == 2)  pop3.play();
+                else if (rand == 3)  pop4.play();
+                else if (rand == 4)  pop5.play();
+                else if (rand == 5)  pop6.play();
+                player.setFrame(currentFrame);
+            } else if (player.anims.currentAnim.key == 'playerJumpLeft' && player.body.velocity.x > 0){
+                var currentFrame = player.anims.currentFrame.index;
+                console.log(currentFrame);
+                player.play('playerJumpRight');
+                var rand = Phaser.Math.Between(0, 5)
+                if (rand == 0)  pop1.play();
+                else if (rand == 1)  pop2.play();
+                else if (rand == 2)  pop3.play();
+                else if (rand == 3)  pop4.play();
+                else if (rand == 4)  pop5.play();
+                else if (rand == 5)  pop6.play();
+                player.setFrame(currentFrame);
+            }
+        }
+
+        if (playerFallBool){
+            if (player.anims.currentAnim.key == 'playerFallRight' && player.body.velocity.x < 0){
+                var currentFrame = player.anims.currentFrame.index;
+                console.log(currentFrame);
+                player.play('playerFallLeft');
+                var rand = Phaser.Math.Between(0, 5)
+                if (rand == 0)  pop1.play();
+                else if (rand == 1)  pop2.play();
+                else if (rand == 2)  pop3.play();
+                else if (rand == 3)  pop4.play();
+                else if (rand == 4)  pop5.play();
+                else if (rand == 5)  pop6.play();
+                player.setFrame(currentFrame);
+            } else if (player.anims.currentAnim.key == 'playerFallLeft' && player.body.velocity.x > 0){
+                var currentFrame = player.anims.currentFrame.index;
+                console.log(currentFrame);
+                player.play('playerFallRight');
+                var rand = Phaser.Math.Between(0, 5)
+                if (rand == 0)  pop1.play();
+                else if (rand == 1)  pop2.play();
+                else if (rand == 2)  pop3.play();
+                else if (rand == 3)  pop4.play();
+                else if (rand == 4)  pop5.play();
+                else if (rand == 5)  pop6.play();
+                player.setFrame(currentFrame);
+            }
+        }
     }
+
+    ;
+
     //JAUGE
     /*
     if (jumpPower >= 0 && jumpPower < 5 && jumpGauge){
@@ -637,8 +814,7 @@ function jumpPowerVariation(context) {
 
 function debugging(context) {
     if (config.physics.arcade.debug) {
-        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped + 
-        '\nclickDirection : ' + clickDirection + ' velocity : ' + player.body.velocity.y);
+        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped);
     }
 
 }
@@ -661,6 +837,7 @@ function jump(context) {
             //else  player.setVelocity(jumpVelHor * jumpPower, jumpVelVer * jumpPower);
             player.setVelocityX(jumpPower * 8 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
             player.setVelocityY(jumpPower * 8 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+            if (jumpPower == 100)   kero.play();
             console.log(jumpPower);
             //cameraFocus.x = player.x;
             //cameraFocus.y = player.y - 120;
@@ -727,6 +904,10 @@ function backgroundsManager(context){
         brouillard3_layer.setScrollFactor(1);
         brouillard4_layer.setScrollFactor(1);
 
+
+        music1.volume = 1;
+        music2.volume = 0;
+
     } else {
         skyBG2.alpha = 1;
         blackCloud0.alpha = 1;
@@ -771,6 +952,73 @@ function backgroundsManager(context){
         fog1.alpha = 0;
         fog2.alpha = 0;
 
+        music1.volume = 0;
+        music2.volume = 1;
+
     }
 
+}
+
+function enemyBehaviour(context){
+
+
+}
+
+function menuUpdate(context){
+    if (menuBool){
+        mouseCursor.x = clickX;
+        mouseCursor.y = clickY;
+        player.body.setAllowGravity(false);
+        player.alpha = 0;
+
+        //console.log(mouseCursor.y)
+
+        // Bouton Quitter 
+
+        if (mouseCursor.x > 1334 && mouseCursor.x < 1464 && mouseCursor.y > 8795 && mouseCursor.y < 8892){
+            boutonQuitterBool = true;
+        } else{
+            boutonQuitterBool = false;
+        }
+    
+        if (boutonQuitterBool){
+            boutonQuitter.setFrame(1);
+        } else{
+            boutonQuitter.setFrame(0);
+        }
+
+        // Bouton Escalader
+
+        if (mouseCursor.x > 1570 && mouseCursor.x < 1833 && mouseCursor.y > 8631 && mouseCursor.y < 8752){
+            boutonEscaladerBool = true;
+        } else{
+            boutonEscaladerBool = false;
+        }
+    
+        if (boutonEscaladerBool){
+            boutonEscalader.setFrame(1);
+            if (grenouilleBouton.y>= 8635)  grenouilleBouton.y-=2;
+            if (context.input.activePointer.isDown){
+                player.y = 8635;
+                player.x = grenouilleBouton.x;
+                kero.play();
+                player.setVelocity(-300, -400);
+                grenouilleBouton.alpha = 0;
+                menuBool = false;
+            }
+        } else{
+            boutonEscalader.setFrame(0);
+            if (grenouilleBouton.y<= 8660)  grenouilleBouton.y+=2;
+        }
+
+
+    }   else{
+        if(playerHasLanded){
+            logo.alpha = 0;
+            boutonQuitter.alpha = 0;
+            boutonEscalader.alpha = 0;
+        }
+        player.body.setAllowGravity(true);
+        player.alpha = 1;
+    }
 }
