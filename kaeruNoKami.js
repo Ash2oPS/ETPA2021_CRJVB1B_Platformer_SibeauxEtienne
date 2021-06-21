@@ -45,10 +45,14 @@ var game = new Phaser.Game(config);
 ////////// VARIABLES //////////
 
 //debug
-
+var finishText;
+var finishTextCount = 0;
 var debugText;
 
 // Backgrounds
+
+var screenFalsh;
+var screenFalshAl;
 
 var skyBG1;
 var bg0;
@@ -80,6 +84,10 @@ var playerHasLanded;
 var jumpGauge;
 var jumpVelHor;
 var jumpVelVer;
+var superSaut;
+var playerHeart;
+var playerReady;
+var playerReadyCount;
 
 var playerIdleBool;
 var playerJumpBool;
@@ -95,6 +103,11 @@ var clickDirection;
 // Mobs
 
 var heart;
+var heartFreq;
+var heartAmp;
+var heartTimer;
+var heartLueur;
+var heartHp;
 
 
 // Map
@@ -102,6 +115,7 @@ var heart;
 var map;
 var tileset;
 var collider_layer;
+var colliderHeart_layer;
 var layerMinus1;
 var layerMinus075;
 var layerMinus05;
@@ -151,6 +165,8 @@ function preload() {
 
     loadGauge(this);
 
+    this.load.image('flashScreen0', 'assets/screenFlash.png');
+
     this.load.image('skyBG1', 'assets/Backgrounds/SkyBG1.png');
     this.load.image('skyBG2', 'assets/Backgrounds/SkyBG2.png');
     this.load.image('blackCloud0', 'assets/Backgrounds/blackCloud0.png');
@@ -176,6 +192,7 @@ function preload() {
     this.load.spritesheet('player', 'assets/grenouille_spritesheet.png', {frameWidth : 68, frameHeight : 64});
 
     this.load.spritesheet('heart', 'assets/Tilemap/Heart/HeartAsset.png',{frameWidth : 262, frameHeight : 312});
+    this.load.image('heartLueur', 'assets/Tilemap/Heart/HeartLueur.png');
 
     this.load.audio('pop1', 'assets/Audio/pop1.mp3');
     this.load.audio('pop2', 'assets/Audio/pop2.mp3');
@@ -230,6 +247,9 @@ function create() {
 
 function update() {
 
+    if (heartHp>=0){
+        
+
     menuUpdate(this);
 
     jumpPowerVariation(this);
@@ -245,6 +265,20 @@ function update() {
 
 
     debugging(this);
+
+    flash(this);
+
+    }
+    
+    else{
+        music2.volume = 0;
+        if (finishTextCount < 200){
+            finishTextCount ++;
+        }else{
+        finishText.setText('Merci d\'avoir joué.');
+        if (finishText.alpha <1)    finishText.alpha +=0.002;
+        }
+    }
 
 
 }
@@ -301,6 +335,9 @@ function loadGauge(context){
     */
 
     context.load.spritesheet('gauge', 'assets/UI/gaugeSpritesheet.png', {frameWidth : 64, frameHeight : 64});
+    context.load.image('gauge1', 'assets/UI/gauge1.png', {frameWidth : 96, frameHeight : 96});
+    context.load.image('gauge2', 'assets/UI/gauge2.png', {frameWidth : 96, frameHeight : 96});
+    context.load.image('gauge3', 'assets/UI/gauge3.png', {frameWidth : 100, frameHeight : 100});
     context.load.spritesheet('gaugeAnim', 'assets/UI/gaugeAnimSpritesheet.png', {frameWidth : 64, frameHeight : 64});
 }
 
@@ -315,6 +352,7 @@ function initDebug(context) {
     mouseCursor = context.physics.add.image(clickX, clickY,'cursorPosition');
     mouseCursor.body.setAllowGravity(false);
     //.alpha = 0;
+
     if (config.physics.arcade.debug) {
         debugText = context.add.text(0, screenHeight, "bonjour, ça va ? super", {
             fontSize: '24px',
@@ -335,19 +373,40 @@ function initDebug(context) {
         collider_layer.alpha = 0;
         mouseCursor.alpha = 0;
     }
+
+    if (heartHp >=0) {
+        finishText = context.add.text(screenWidth/2, screenHeight/2, "", {
+            fontSize: '24px',
+            padding: {
+                x: 10,
+                y: 5
+            },
+            backgroundColor: '#ffffff',
+            fill: '#000000'
+        });
+        finishText.setScrollFactor(0)
+            .setOrigin(0.5, .5)
+            .setDepth(11);
+        finishText.alpha = 0;
+    }
 }
 
 function initPlayer(context) {
     player = context.physics.add.sprite(928, 9300, 'player')
     //player = context.physics.add.sprite(5058, 5626, 'player')
     //player = context.physics.add.sprite(7248, 3732, 'player')
-    //player = context.physics.add.sprite(11103, 839, 'player')
+    //player = context.physics.add.sprite(10300, 800, 'player')
         .setBounce(0.9, 0)
         .setDepth(-0.2)
         .setOrigin(0.5, 1)
         .setSize(30, 35)
         .setOffset(19, 29)
         .setMaxVelocity(750);
+
+    playerReady  = false;
+    playerReadyCount = 0;
+
+    playerHeart = false;
 
     if (player.x == 928){    
         menuBool = true;
@@ -402,6 +461,38 @@ function initPlayer(context) {
         repeat : 0
     });
 
+    //SUPER
+
+    context.anims.create({
+        key :'playerSuperJumpRight',
+        frames : context.anims.generateFrameNumbers('player', {start :24, end: 27}),
+        frameRate : 6,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerSuperFallRight',
+        frames : context.anims.generateFrameNumbers('player', {start :28, end: 29}),
+        frameRate : 3,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerSuperJumpLeft',
+        frames : context.anims.generateFrameNumbers('player', {start :30, end: 33}),
+        frameRate : 6,
+        repeat : 0
+    });
+
+    context.anims.create({
+        key :'playerSuperFallLeft',
+        frames : context.anims.generateFrameNumbers('player', {start :34, end: 35}),
+        frameRate : 3,
+        repeat : 0
+    });
+
+    //
+
     player.play('playerIdle');
     playerIdleBool = true;
     playerJumpBool = false;
@@ -413,6 +504,25 @@ function initPlayer(context) {
         frameRate : 0,
         repeat : -1
     });
+    context.anims.create({
+        key :'gauge1Anim',
+        frames : context.anims.generateFrameNumbers('gauge1', {start :0, end: 0}),
+        frameRate : 0,
+        repeat : -1
+    });
+    context.anims.create({
+        key :'gauge2Anim',
+        frames : context.anims.generateFrameNumbers('gauge2', {start :0, end: 0}),
+        frameRate : 0,
+        repeat : -1
+    });
+    context.anims.create({
+        key :'gauge3Anim',
+        frames : context.anims.generateFrameNumbers('gauge3', {start :0, end: 0}),
+        frameRate : 0,
+        repeat : -1
+    });
+    
 
     jumpGauge.play('gaugeValue');
 
@@ -468,6 +578,13 @@ function initMap(context){
 }
 
 function initBackground(context){
+
+    screenFalsh = context.add.image(0, 0, 'flashScreen0')
+    .setScrollFactor(0)
+    .setOrigin(0, 0)
+    .setDepth(10);
+    var screenFalshAl = 0;
+    screenFalsh.alpha = 0;
 
     // PHASE 1
 
@@ -548,6 +665,24 @@ function initBackground(context){
         frameRate : 8,
         repeat : -1
     });
+    context.anims.create({
+        key :'snowStorm0Anim1',
+        frames : context.anims.generateFrameNumbers('snowStorm0', {start :0, end: 4}),
+        frameRate : 10,
+        repeat : -1
+    });
+    context.anims.create({
+        key :'snowStorm0Anim3',
+        frames : context.anims.generateFrameNumbers('snowStorm0', {start :0, end: 4}),
+        frameRate : 16,
+        repeat : -1
+    });
+    context.anims.create({
+        key :'snowStorm0Anim2',
+        frames : context.anims.generateFrameNumbers('snowStorm0', {start :0, end: 4}),
+        frameRate : 12,
+        repeat : -1
+    });
     snowStorm0.play('snowStorm0Anim');
 
     snowStorm2 = context.add.sprite(0, 0, 0, 0, 'snowStorm2')
@@ -584,7 +719,11 @@ function initBackground(context){
 function initMobs(context){
 
 
-    heart = context.add.sprite(11360, 1040, 'heart');
+    heart = context.add.sprite(11360, 1040, 'heart')
+    .setDepth(2);
+    heartLueur = context.add.image(11320, 1040, 'heartLueur')
+    .setDepth(2);
+    heartHp = 3;
 
 }
 
@@ -604,12 +743,11 @@ function jumpPowerVariation(context) {
         jumpGauge.setFrame(jumpPower-1);
         jumpGauge.alpha = 1;
         if (!playerIdleBool){
+            if (superSaut)  superSaut = false;
             player.play('playerIdle');
-            console.log('SUUUUUUUUCE');
             playerIdleBool = true;
             playerJumpBool = false;
             playerFallBool = false;
-            console.log('IdelAnim');
         }
         if (jumpPowerGoesUp) {
             jumpPower += 1;
@@ -626,36 +764,52 @@ function jumpPowerVariation(context) {
         jumpGauge.alpha = 0;
 
         if (player.body.velocity.y < 0 && !playerJumpBool){
+            if (!superSaut){
             if (player.body.velocity.x < 0){
                 player.play('playerJumpLeft', false);
             }
             else{
                 player.play('playerJumpRight', false);
             }
+        } else{
+            if (player.body.velocity.x < 0){
+                player.play('playerSuperJumpLeft', false);
+            }
+            else{
+                player.play('playerSuperJumpRight', false);
+            }
+        }
             playerJumpBool = true;
             playerIdleBool = false;
             playerFallBool = false;
-            console.log('jumpAnim');
         }
 
         if (player.body.velocity.y > 0 && !playerFallBool){
+            if (!superSaut){
             if (player.body.velocity.x < 0) { 
                 player.play('playerFallLeft', false);
             }
             else{
                 player.play('playerFallRight', false);
             }
+        }else{
+            if (player.body.velocity.x < 0) { 
+                player.play('playerSuperFallLeft', false);
+            }
+            else{
+                player.play('playerSuperFallRight', false);
+            }
+        }
             playerJumpBool = false;
             playerIdleBool = false;
             playerFallBool = true;
-            console.log('jumpFall');
         }
 
         if (playerJumpBool){
             if (player.anims.currentAnim.key == 'playerJumpRight' && player.body.velocity.x < 0){
                 var currentFrame = player.anims.currentFrame.index;
-                console.log(currentFrame);
-                player.play('playerJumpLeft');
+                if (!superSaut) player.play('playerJumpLeft');
+                else            player.play('playerSuperJumpLeft')
                 var rand = Phaser.Math.Between(0, 5)
                 if (rand == 0)  pop1.play();
                 else if (rand == 1)  pop2.play();
@@ -666,8 +820,8 @@ function jumpPowerVariation(context) {
                 player.setFrame(currentFrame);
             } else if (player.anims.currentAnim.key == 'playerJumpLeft' && player.body.velocity.x > 0){
                 var currentFrame = player.anims.currentFrame.index;
-                console.log(currentFrame);
-                player.play('playerJumpRight');
+                if (!superSaut) player.play('playerJumpRight');
+                else            player.play('playerSuperJumpRight');
                 var rand = Phaser.Math.Between(0, 5)
                 if (rand == 0)  pop1.play();
                 else if (rand == 1)  pop2.play();
@@ -682,8 +836,8 @@ function jumpPowerVariation(context) {
         if (playerFallBool){
             if (player.anims.currentAnim.key == 'playerFallRight' && player.body.velocity.x < 0){
                 var currentFrame = player.anims.currentFrame.index;
-                console.log(currentFrame);
-                player.play('playerFallLeft');
+                if (!superSaut) player.play('playerFallLeft');
+                else            player.play('playerSuperFallLeft')
                 var rand = Phaser.Math.Between(0, 5)
                 if (rand == 0)  pop1.play();
                 else if (rand == 1)  pop2.play();
@@ -694,8 +848,8 @@ function jumpPowerVariation(context) {
                 player.setFrame(currentFrame);
             } else if (player.anims.currentAnim.key == 'playerFallLeft' && player.body.velocity.x > 0){
                 var currentFrame = player.anims.currentFrame.index;
-                console.log(currentFrame);
-                player.play('playerFallRight');
+                if (!superSaut) player.play('playerFallRight');
+                else            player.play('playerSuperFallRight')
                 var rand = Phaser.Math.Between(0, 5)
                 if (rand == 0)  pop1.play();
                 else if (rand == 1)  pop2.play();
@@ -706,9 +860,142 @@ function jumpPowerVariation(context) {
                 player.setFrame(currentFrame);
             }
         }
+
+        
+
     }
 
-    ;
+    
+    if (!playerHeart){
+        if (player.x>=10840){
+            if (!player.body.blocked.down)    player.setVelocityX(0);
+            if (player.body.blocked.down){
+                playerHeart = true;
+                colliderHeart_layer = map.createLayer('colliderFinal', tileset);
+                colliderHeart_layer.setCollisionByExclusion(-1, true);
+                context.physics.add.collider(player, colliderHeart_layer);
+                colliderHeart_layer.alpha = 0;
+                context.cameras.main.startFollow(heart);
+                context.cameras.main.setBounds(0, 0, player.widthInPixels, player.heightInPixels);
+                context.cameras.main.followOffset.set(200, 30);
+                playerHasLanded = true;
+                playerHasJumped = false;
+                heartTimer = 0;
+            }
+        }
+        }
+
+
+        if (playerHeart){
+
+            superSaut = true;
+
+            //anims
+
+            if (heartHp == 3){
+                heartFreq = 0.1;
+                heartAmp = 0.02;
+                heartTimer ++;
+                jumpGauge.setFrame(99);
+                playerReady = true;
+            } else if (heartHp == 2){
+                heartFreq = 0.15;
+                heartAmp = 0.023;
+                heartTimer ++;
+                heart.x = 11360;
+                heart.y = 1040;
+                heart.x += Phaser.Math.Between(-2, 2);
+                heart.y += Phaser.Math.Between(-2, 2);
+
+            } else if (heartHp == 1){
+                heartFreq = 0.32;
+                heartAmp = 0.034;
+                heartTimer ++;
+                heart.x = 11360;
+                heart.y = 1040;
+                heart.x += Phaser.Math.Between(-5, 5);
+                heart.y += Phaser.Math.Between(-5, 5);
+                jumpGauge.x = player.x + 60;
+                jumpGauge.y = player.y -30;
+                jumpGauge.x += Phaser.Math.Between(-2, 2);
+                jumpGauge.y += Phaser.Math.Between(-2, 2);
+            }
+            else if (heartHp == 0){
+                heartFreq = 0.9;
+                heartAmp = 0.06;
+                heartTimer ++;
+                heart.x = 11360;
+                heart.y = 1040;
+                heart.x += Phaser.Math.Between(-8, 8);
+                heart.y += Phaser.Math.Between(-8, 8);
+                jumpGauge.x = player.x + 60;
+                jumpGauge.y = player.y -30;
+                jumpGauge.x += Phaser.Math.Between(-6, 6);
+                jumpGauge.y += Phaser.Math.Between(-6, 6);
+            }
+            heart.setScale(1 + Math.sin(heartTimer*heartFreq)*heartAmp);
+
+            //destruction
+
+            if (player.body.blocked.down){   
+                player.setVelocityX(0);
+                playerHasJumped = false;
+                playerHasLanded = true;
+            }
+
+            if (context.input.activePointer.isDown && player.body.blocked.down && playerReady){
+                    if (!playerHasJumped && playerHasLanded) {
+                        //jumpPower = 100
+                        mouseCursor.x = heart.x;
+                        mouseCursor.y = heart.y - 160;
+                        //if (clickDirection)  player.setVelocity(jumpVelHor * jumpPower * -1, jumpVelVer * jumpPower);
+                        //else  player.setVelocity(jumpVelHor * jumpPower, jumpVelVer * jumpPower);
+                        player.setVelocityX(100 * 8 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+                        player.setVelocityY(100 * 8 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
+                        kero.play();
+                        //cameraFocus.x = player.x;
+                        //cameraFocus.y = player.y - 120;
+                        playerHasJumped = true;
+                        playerHasLanded = false;
+                    } else{
+                        playerHasJumped = false;
+                    }
+                
+                console.log('oui')
+            }
+
+            if (player.x >= 11280){
+                player.setVelocity(-350, -400);
+                if (playerReady){
+                    heartHp --;
+                    screenFalshAl = 1;
+                    if (heartHp==2){
+                        jumpGauge = context.add.sprite(player.x + 60, player.y -30, 'gauge1');
+                    } else if (heartHp==1){
+                        jumpGauge = context.add.sprite(player.x + 60, player.y -30, 'gauge2');
+                    } else if (heartHp==0){
+                        jumpGauge = context.add.sprite(player.x + 60, player.y -30, 'gauge3');
+                    }
+                    playerReady = false
+                }
+            }
+
+            if (player.body.blocked.down && !playerReady){
+                if(playerReadyCount <= 40){
+                    playerReadyCount++;
+                }else{
+                playerReady = true;
+                playerReadyCount = 0;
+                }                
+            }
+
+
+
+
+
+
+        }
+
 
     //JAUGE
     /*
@@ -814,7 +1101,7 @@ function jumpPowerVariation(context) {
 
 function debugging(context) {
     if (config.physics.arcade.debug) {
-        debugText.setText('jumpPower : ' + jumpPower + ' playerHasLanded : ' + playerHasLanded + ' playerHasJumped : ' + playerHasJumped);
+        debugText.setText('player ready  : ' + playerReady + 'player ready count : ' + playerReadyCount);
     }
 
 }
@@ -828,6 +1115,7 @@ function jump(context) {
         player.setVelocityX(0);
     }
 
+    if(!playerHeart){
     if (context.input.activePointer.isDown) {
         if (!playerHasJumped && playerHasLanded && clickY < player.y) {
             //jumpPower = 100
@@ -837,8 +1125,10 @@ function jump(context) {
             //else  player.setVelocity(jumpVelHor * jumpPower, jumpVelVer * jumpPower);
             player.setVelocityX(jumpPower * 8 * Math.cos(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
             player.setVelocityY(jumpPower * 8 * Math.sin(Phaser.Math.Angle.BetweenPoints(player, mouseCursor)));
-            if (jumpPower == 100)   kero.play();
-            console.log(jumpPower);
+            if (jumpPower == 100){
+                superSaut = true
+                kero.play();
+            }
             //cameraFocus.x = player.x;
             //cameraFocus.y = player.y - 120;
             playerHasJumped = true;
@@ -846,6 +1136,7 @@ function jump(context) {
         } else{
             playerHasJumped = false;
         }
+    }
     }
     if (playerHasJumped && !playerHasLanded){
         if (player.body.blocked.down) {
@@ -855,6 +1146,7 @@ function jump(context) {
             jumpPower = Phaser.Math.Between(1, 100);
         }
     }
+    
 
     jumpGauge.x = player.x + 60;
     jumpGauge.y = player.y - 30;
@@ -971,7 +1263,6 @@ function menuUpdate(context){
         player.body.setAllowGravity(false);
         player.alpha = 0;
 
-        //console.log(mouseCursor.y)
 
         // Bouton Quitter 
 
@@ -1021,4 +1312,13 @@ function menuUpdate(context){
         player.body.setAllowGravity(true);
         player.alpha = 1;
     }
+}
+
+function flash(context){
+    if (heartHp>=0){
+    if (screenFalshAl !=0){
+        screenFalshAl -= 0.1;
+    }
+}
+    screenFalsh.alpha = screenFalshAl
 }
